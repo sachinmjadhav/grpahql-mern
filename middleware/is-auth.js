@@ -16,7 +16,7 @@ module.exports = (req, res, next) => {
   // Decode the token if present in header
   let decodedToken;
   try {
-    decodedToken = jwt.verify(token, "somesupersecretkey");
+    decodedToken = jwt.verify(token, "thisisasupersecretkey");
   } catch(err) {
     req.isAuth = false;
     return next();

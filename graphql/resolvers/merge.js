@@ -1,14 +1,26 @@
+const DataLoader = require('dataloader');
 const Event = require("../../models/event");
 const User = require("../../models/user");
 const {dateToString} = require("../../helpers/date");
 
+// DataLoader helps in combining multiple requests into a single big request
+
+const eventLoader = new DataLoader((eventIds) => {
+  return events(eventIds);
+});
+
+const userLoader = new DataLoader((userIds) => {
+  return User.find({_id: {$in: userIds}});
+});
+
 // Fn: Get User from userId
 const user = async userId => {
   try {
-    const user = await User.findById(userId);
+    const user = await userLoader.load(userId.toString());
     return {
       ...user._doc,
-      createdEvents: events.bind(this, user._doc.createdEvents)
+      _id: user.id,
+      createdEvents: () => eventLoader.loadMany(user._doc.createdEvents)
     };
   } catch (err) {
     throw err;
@@ -30,8 +42,8 @@ const events = async eventIds => {
 // Fn: Get single event from the eventId
 const singleEvent = async eventId => {
   try {
-    const event = await Event.findById(eventId);
-    return transformEvent(event);
+    const event = await eventLoader.load(eventId.toString());
+    return event;
   } catch (error) {
     throw error;
   }
@@ -40,6 +52,7 @@ const singleEvent = async eventId => {
 const transformEvent = event => {
   return {
     ...event._doc,
+    _id: event.id,
     date: dateToString(event._doc.date),
     creator: user.bind(this, event.creator)
   };
@@ -47,11 +60,12 @@ const transformEvent = event => {
 
 const transformBooking = booking => {
   return {
-    ...booking,
-    user: user.bind(this, booking.user),
-    event: singleEvent.bind(this, booking.event),
-    createdAt: dateToString(booking.createdAt),
-    updatedAt: dateToString(booking.updatedAt)
+    ...booking._doc,
+    _id: booking.id,
+    user: user.bind(this, booking._doc.user),
+    event: singleEvent.bind(this, booking._doc.event),
+    createdAt: dateToString(booking._doc.createdAt),
+    updatedAt: dateToString(booking._doc.updatedAt)
   };
 };
 
