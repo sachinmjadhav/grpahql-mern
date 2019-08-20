@@ -9,13 +9,13 @@ const Navigation = props => (
       return (
         <header className="main-navigation">
           <div className="main-navigation__logo">
-            <Link to="/"><h1>EasyEvent</h1></Link>
+            <Link to="/"><h1>BookMyEvent</h1></Link>
           </div>
           <nav className="main-navigation__items">
             <ul>
               {!context.token && (
                 <li>
-                  <NavLink to="/auth">Authenticate</NavLink>
+                  <NavLink to="/auth">Sign In</NavLink>
                 </li>
               )}
               <li>

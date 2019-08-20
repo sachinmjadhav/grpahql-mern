@@ -4,6 +4,7 @@ import Backdrop from "../components/Backdrop/Backdrop";
 import AuthContext from "../context/auth-context";
 import EventList from "../components/Events/EventList/EventList";
 import Spinner from "../components/Spinner/Spinner";
+import fetcher from '../helpers/fetcher';
 import "./Events.css";
 
 const EventsPage = () => {
@@ -67,14 +68,7 @@ const EventsPage = () => {
       }
     };
 
-    fetch("http://localhost:3001/graphql", {
-      method: "POST",
-      body: JSON.stringify(requestBody),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token.token}`
-      }
-    })
+    fetcher(requestBody, token.token)
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Failed");
@@ -123,13 +117,7 @@ const EventsPage = () => {
       `
     };
 
-    fetch("http://localhost:3001/graphql", {
-      method: "POST",
-      body: JSON.stringify(requestBody),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    })
+    fetcher(requestBody)
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Failed");
@@ -187,13 +175,16 @@ const EventsPage = () => {
       }
     })
       .then(res => {
+        if (res.status === 500) {
+          throw new Error("Already Booked");
+        }
         if (res.status !== 200 && res.status !== 201) {
+          console.log(res);
           throw new Error("Failed");
         }
         return res.json();
       })
       .then(resData => {
-        console.log(resData);
         setSelectedEvent(null);
       })
       .catch(err => {
@@ -201,6 +192,29 @@ const EventsPage = () => {
         setIsLoading(false);
       });
   };
+
+  const onDeleteEvent = eventId => {
+    let requestBody = {
+      query: `
+        mutation DeleteEvent($eventId: ID!) {
+          deleteEvent(eventId: $eventId) {
+            _id
+            title
+          }HERE!!!
+        }
+      `,
+      variables: {
+        eventId
+      }
+    }
+
+    fetcher(requestBody, token.token)
+      .then(res => res.json())
+      .then(data => fetchEvents())
+      .catch(err => {
+        throw new Error(err);
+      });
+  }
 
   return (
     <React.Fragment>
@@ -218,16 +232,16 @@ const EventsPage = () => {
             <form>
               <div className="form-control">
                 <label htmlFor="title">Title</label>
-                <input type="text" id="title" ref={titleRef} />
+                <input type="text" id="title" placeholder="Title" ref={titleRef} />
               </div>
               <div className="form-control">
                 <label htmlFor="price">Price</label>
-                <input type="number" id="price" ref={priceRef} />
+                <input type="number" id="price" placeholder="Price" ref={priceRef} />
               </div>
               <div className="form-control">
                 <label htmlFor="date">Date</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   id="date"
                   ref={dateRef}
                 />
@@ -236,6 +250,7 @@ const EventsPage = () => {
                 <label htmlFor="description">Description</label>
                 <textarea
                   id="description"
+                  placeholder="Description"
                   rows="4"
                   ref={descriptionRef}
                 />
@@ -249,11 +264,11 @@ const EventsPage = () => {
           <Backdrop />
           <Modal
             title={selectedEvent.title}
-            canCancel
+            canCancel={token}
             canConfirm
             onCancel={onModalCancel}
             onConfirm={bookEventHandler}
-            confirmText={token ? "Book" : "Confirm"}
+            confirmText={token ? "Book" : "Ok"}
           >
             <h1>{selectedEvent.title}</h1>
             <h2>
@@ -279,6 +294,7 @@ const EventsPage = () => {
           events={events}
           authUserId={userId && userId.userId}
           onViewDetail={showDetailHandler}
+          onDeleteEvent={onDeleteEvent}
         />
       )}
     </React.Fragment>

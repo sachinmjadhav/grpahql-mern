@@ -24,6 +24,12 @@ module.exports = {
       throw new Error('Unauthenticated!');
     }
     const fetchedEvent = await Event.findOne({_id: args.eventId});
+    const allBookings = await Booking.find();
+    allBookings.forEach(booking => {
+      if(fetchedEvent._id.toString() === booking.event.toString()) {
+        throw new Error('Already Booked')
+      }
+    })
     const booking = new Booking({
       user: req.userId,
       event: fetchedEvent.id

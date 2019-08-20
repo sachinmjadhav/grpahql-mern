@@ -44,5 +44,25 @@ module.exports = {
     } catch (err) {
       throw err;
     }
+  },
+
+  // Mutation: Delete Event
+  deleteEvent: async (args, req) => {
+    console.log(req.userId)
+    if(!req.isAuth) {
+      throw new Error('Unauthenticated!');
+    }
+    try {
+      const event = await Event.findById(args.eventId)
+      if (event.creator.toString() === req.userId) {
+        const deletedEvent = await Event.findByIdAndDelete(args.eventId);
+        console.log('Deleted Event', deletedEvent);
+      } else {
+        throw new Error('You are Unauthorized to delete this event!')
+      }
+      return event
+    } catch (error) {
+      throw error
+    }
   }
 }

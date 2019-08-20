@@ -6,12 +6,15 @@ const EventItem = props => (
     <div>
       <h1>{props.title}</h1>
       <h2>
-        ${props.price} - {new Date(props.date).toLocaleDateString()}
+        Rs.{props.price} - {new Date(props.date).toLocaleDateString()}
       </h2>
     </div>
-    <div>
+    <div style={{ textAlign: 'center' }}>
       {props.userId === props.creatorId ? (
-        <p>You are the owner of this event</p>
+        <>
+        {/* <p>You are the owner of this event</p> */}
+        <button className="btn btn-danger" onClick={() => props.onDeleteEvent(props.eventId)}>Delete Event</button>
+        </>
       ) : (
         <button
           className="btn"

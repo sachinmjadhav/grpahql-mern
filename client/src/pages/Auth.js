@@ -1,16 +1,21 @@
 import React, {useState, useContext} from "react";
 import AuthContext from "../context/auth-context";
+import Spinner from "../components/Spinner/Spinner";
+import fetcher from '../helpers/fetcher';
 import "./Auth.css";
 
 const AuthPage = props => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const {login} = useContext(AuthContext);
 
   const submitHandler = e => {
     e.preventDefault();
+    setIsLoading(true);
     if (email.trim().length === 0 || password.trim().length === 0) {
       return;
     }
@@ -48,59 +53,79 @@ const AuthPage = props => {
       };
     }
 
-    fetch("http://localhost:3001/graphql", {
-      method: "POST",
-      body: JSON.stringify(requestBody),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    })
-      .then(res => {
-        if (res.status !== 200 && res.status !== 201) {
-          throw new Error("Failed");
-        }
-        return res.json();
-      })
+    fetcher(requestBody)
+      .then(res => res.json())
       .then(resData => {
-        const {token, userId, tokenExpiration} = resData.data.login;
-        if (token) {
-          setEmail("");
+        if (resData.errors) {
+          setError(resData.errors[0].message);
+          setIsLoading(false);
           setPassword("");
-          login(token, userId, tokenExpiration);
+        } else {
+          const {token, userId, tokenExpiration} = resData.data.login;
+          if (token) {
+            setIsLoading(false);
+            setEmail("");
+            setPassword("");
+            setError(null);
+            login(token, userId, tokenExpiration);
+          }
         }
       })
       .catch(err => {
-        console.log(err);
+        setIsLoading(false);
+        setPassword("");
+        console.log("err", err);
       });
   };
 
-  return (
-    <form className="auth-form" onSubmit={submitHandler}>
-      <div className="form-control">
-        <label htmlFor="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-      </div>
-      <div className="form-control">
-        <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
-      </div>
-      <div className="form-actions">
-        <button type="submit">{isLogin ? "Login" : "SignUp"}</button>
-        <button type="button" onClick={() => setIsLogin(!isLogin)}>
-          Switch to {isLogin ? "SignUp" : "Login"}
-        </button>
-      </div>
-    </form>
+  return isLoading ? (
+    <Spinner />
+  ) : (
+    <React.Fragment>
+      <form className="auth-form" onSubmit={submitHandler}>
+        <div className="form-control">
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="form-control">
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+        </div>
+        <div className="form-actions">
+          <button type="submit">
+            {isLogin ? "Login" : "SignUp"}
+          </button>
+          <button type="button" onClick={() => setIsLogin(!isLogin)}>
+            Switch to {isLogin ? "SignUp" : "Login"}
+          </button>
+        </div>
+        {error && (
+          <span
+            style={{
+              background: "#007bff",
+              position: "absolute",
+              top: "5rem",
+              right: "2rem",
+              padding: "5px 10px",
+              borderRadius: '5px',
+              color: 'white'
+            }}
+          >
+            {error}
+          </span>
+        )}
+      </form>
+    </React.Fragment>
   );
 };
 

@@ -4,6 +4,7 @@ import BookingList from "../components/Bookings/BookingList/BookingList";
 import Spinner from "../components/Spinner/Spinner";
 import BookingsChart from "../components/Bookings/BookingsChart/BookingsChart";
 import BookingsControl from "../components/Bookings/BookingsControls/BookingsControls";
+import fetcher from '../helpers/fetcher';
 
 const BookingsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,20 +30,14 @@ const BookingsPage = () => {
                 _id
                 title
                 date
+                price
               }
             }
           }
         `
     };
 
-    fetch("http://localhost:3001/graphql", {
-      method: "POST",
-      body: JSON.stringify(requestBody),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token.token}`
-      }
-    })
+    fetcher(requestBody, token.token)
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Failed");
@@ -76,14 +71,7 @@ const BookingsPage = () => {
       }
     };
 
-    fetch("http://localhost:3001/graphql", {
-      method: "POST",
-      body: JSON.stringify(requestBody),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token.token}`
-      }
-    })
+    fetcher(requestBody, token.token)
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Failed");
@@ -103,7 +91,7 @@ const BookingsPage = () => {
   };
 
   const outputTypeHandler = outputType => {
-    if (outputType == "list") {
+    if (outputType === "list") {
       setOutputType("list");
     } else {
       setOutputType("chart");

@@ -6,10 +6,17 @@ body {
   font-family: sans-serif;
 }
 
+.form-control input,
+.form-control textarea {
+  padding: 7px;
+  border: 1px solid gray;
+  border-radius: 3px;
+}
+
 .form-control label,
 .form-control input,
 .form-control textarea {
-  width: 100%;
+  width: 95%;
   display: block;
 }
 
@@ -40,4 +47,15 @@ body {
 .btn:active {
   background: #6219d6;
   border-color: #6219d6;
+}
+
+.btn-danger {
+  background: #ff3535;
+  border-color: #ff3535;
+  outline: none;
+}
+
+.btn-danger:hover {
+  background: #fd5a5a;
+  border-color: #fd5a5a;
 }

@@ -13,6 +13,7 @@ const EventList = props => {
       userId={props.authUserId}
       creatorId={event.creator._id}
       onDetail={props.onViewDetail}
+      onDeleteEvent={props.onDeleteEvent}
     />
   ));
 
